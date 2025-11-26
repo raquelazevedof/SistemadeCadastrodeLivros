@@ -1,107 +1,148 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
-// Struct que representa um livro
+// Struct que representa um territorio
 typedef struct {
-    char nome[50];
-    char autor[30];
-    char editora[30];
-    int edicao;
-} Livro;
+    char nome[30];
+    char cor[10];
+    int tropas;
+} Territorio;
 
-// Struct que representa um emprestimo
-typedef struct {
-    char usuario[30];
-    int idLivro; // indice do livro emprestado
-} Emprestimo;
+// -----------------------------
+// Funcao para exibir territorios
+// -----------------------------
+void exibirTerritorios(Territorio* mapa, int n) {
+    printf("\n=== ESTADO ATUAL DOS TERRITORIOS ===\n");
+    for (int i = 0; i < n; i++) {
+        printf("\nTerritorio %d\n", i);
+        printf("Nome: %s\n", mapa[i].nome);
+        printf("Cor: %s\n", mapa[i].cor);
+        printf("Tropas: %d\n", mapa[i].tropas);
+    }
+}
 
+// ------------------------------------------
+// Funcao que simula um ataque entre territorios
+// ------------------------------------------
+void atacar(Territorio* atacante, Territorio* defensor) {
+    int dadoAtacante = (rand() % 6) + 1;
+    int dadoDefensor = (rand() % 6) + 1;
+
+    printf("\nRolagem do atacante: %d", dadoAtacante);
+    printf("\nRolagem do defensor: %d\n", dadoDefensor);
+
+    if (dadoAtacante > dadoDefensor) {
+        printf("\nO atacante venceu a batalha!\n");
+
+        // Se vence, assume o territorio
+        strcpy(defensor->cor, atacante->cor);
+
+        // Metade das tropas do atacante vao para o defensor
+        defensor->tropas = atacante->tropas / 2;
+
+        printf("O territorio %s agora pertence ao exercito %s.\n",
+               defensor->nome, defensor->cor);
+    } else {
+        printf("\nO defensor venceu a batalha!\n");
+
+        // Atacante perde 1 tropa (mas nunca fica com menos de 1)
+        if (atacante->tropas > 1) {
+            atacante->tropas--;
+        }
+
+        printf("O territorio atacante perdeu uma tropa e agora possui %d tropas.\n",
+               atacante->tropas);
+    }
+}
+
+// ------------------------------------------
+// Funcao para liberar memoria
+// ------------------------------------------
+void liberarMemoria(Territorio* mapa) {
+    free(mapa);
+}
+
+// ------------------------------------------
+// Programa principal
+// ------------------------------------------
 int main() {
-    int qtdLivros;
-    int qtdEmprestimos;
-    
-    printf("Quantos livros deseja cadastrar? ");
-    scanf("%d", &qtdLivros);
-    getchar(); // limpar buffer
+    srand(time(NULL));
 
-    // Alocacao dinamica do vetor de livros usando malloc
-    Livro *livros = (Livro*) malloc(qtdLivros * sizeof(Livro));
+    int n;
+    printf("Quantos territorios deseja cadastrar? ");
+    scanf("%d", &n);
+    getchar();
 
-    if (livros == NULL) {
+    // Alocacao dinamica
+    Territorio* mapa = (Territorio*) malloc(n * sizeof(Territorio));
+
+    if (mapa == NULL) {
         printf("Erro ao alocar memoria.\n");
         return 1;
     }
 
-    // Cadastro dos livros
-    for (int i = 0; i < qtdLivros; i++) {
-        printf("\nCadastro do livro %d\n", i + 1);
-        
-        printf("Nome do livro: ");
-        fgets(livros[i].nome, sizeof(livros[i].nome), stdin);
-        livros[i].nome[strcspn(livros[i].nome, "\n")] = '\0';
+    // Cadastro dos territorios
+    for (int i = 0; i < n; i++) {
+        printf("\nCadastro do territorio %d\n", i);
 
-        printf("Autor: ");
-        fgets(livros[i].autor, sizeof(livros[i].autor), stdin);
-        livros[i].autor[strcspn(livros[i].autor, "\n")] = '\0';
+        printf("Nome: ");
+        fgets(mapa[i].nome, sizeof(mapa[i].nome), stdin);
+        mapa[i].nome[strcspn(mapa[i].nome, "\n")] = '\0';
 
-        printf("Editora: ");
-        fgets(livros[i].editora, sizeof(livros[i].editora), stdin);
-        livros[i].editora[strcspn(livros[i].editora, "\n")] = '\0';
+        printf("Cor do exercito: ");
+        fgets(mapa[i].cor, sizeof(mapa[i].cor), stdin);
+        mapa[i].cor[strcspn(mapa[i].cor, "\n")] = '\0';
 
-        printf("Edicao (numero): ");
-        scanf("%d", &livros[i].edicao);
-        getchar(); // limpar buffer
-    }
-
-    // Cadastro de emprestimos
-    printf("\nQuantos emprestimos deseja registrar? ");
-    scanf("%d", &qtdEmprestimos);
-    getchar(); 
-
-    // Alocacao dinamica usando calloc (inicia tudo com zero)
-    Emprestimo *emprestimos = (Emprestimo*) calloc(qtdEmprestimos, sizeof(Emprestimo));
-
-    if (emprestimos == NULL) {
-        printf("Erro ao alocar memoria.\n");
-        free(livros);
-        return 1;
-    }
-
-    for (int i = 0; i < qtdEmprestimos; i++) {
-        printf("\nCadastro do emprestimo %d\n", i + 1);
-        
-        printf("Nome do usuario: ");
-        fgets(emprestimos[i].usuario, sizeof(emprestimos[i].usuario), stdin);
-        emprestimos[i].usuario[strcspn(emprestimos[i].usuario, "\n")] = '\0';
-
-        printf("Digite o indice do livro emprestado (0 a %d): ", qtdLivros - 1);
-        scanf("%d", &emprestimos[i].idLivro);
+        printf("Quantidade de tropas: ");
+        scanf("%d", &mapa[i].tropas);
         getchar();
     }
 
-    // Exibicao dos livros cadastrados
-    printf("\n=== LISTA DE LIVROS ===\n");
-    for (int i = 0; i < qtdLivros; i++) {
-        printf("\nLivro %d\n", i);
-        printf("Nome: %s\n", livros[i].nome);
-        printf("Autor: %s\n", livros[i].autor);
-        printf("Editora: %s\n", livros[i].editora);
-        printf("Edicao: %d\n", livros[i].edicao);
+    int opcao = 1;
+    while (opcao == 1) {
+        exibirTerritorios(mapa, n);
+
+        int a, d;
+
+        printf("\nEscolha o indice do territorio atacante: ");
+        scanf("%d", &a);
+        getchar();
+
+        printf("Escolha o indice do territorio defensor: ");
+        scanf("%d", &d);
+        getchar();
+
+        // Validacoes
+        if (a == d) {
+            printf("\nErro: um territorio nao pode atacar ele mesmo.\n");
+            continue;
+        }
+
+        if (strcmp(mapa[a].cor, mapa[d].cor) == 0) {
+            printf("\nErro: nao pode atacar um territorio da mesma cor.\n");
+            continue;
+        }
+
+        if (mapa[a].tropas < 2) {
+            printf("\nO atacante precisa ter pelo menos 2 tropas para atacar.\n");
+            continue;
+        }
+
+        // Realiza o ataque
+        atacar(&mapa[a], &mapa[d]);
+
+        // Exibe estado final
+        exibirTerritorios(mapa, n);
+
+        printf("\nDeseja realizar outro ataque? (1 = sim / 0 = nao): ");
+        scanf("%d", &opcao);
+        getchar();
     }
 
-    // Exibicao dos emprestimos
-    printf("\n=== EMPRESTIMOS REGISTRADOS ===\n");
-    for (int i = 0; i < qtdEmprestimos; i++) {
-        printf("\nEmprestimo %d\n", i + 1);
-        printf("Usuario: %s\n", emprestimos[i].usuario);
-        printf("Livro emprestado: %s\n", livros[emprestimos[i].idLivro].nome);
-    }
-
-    // Liberar memoria
-    free(livros);
-    free(emprestimos);
-
-    printf("\nMemoria liberada. Sistema finalizado.\n");
+    liberarMemoria(mapa);
+    printf("\nMemoria liberada. Programa finalizado.\n");
 
     return 0;
 }
