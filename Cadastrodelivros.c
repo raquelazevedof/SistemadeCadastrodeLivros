@@ -2,153 +2,106 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* ================================================================
-   ESTRUTURA BASICA DO JOGO WAR (SEM ACENTOS E SEM CEDILHA)
-   Inclui:
-   - Cadastro de territorios (struct)
-   - Ataque entre territorios (ponteiros + alocacao dinamica)
-   - Missoes simples
-   - Exibicao organizada
-   ================================================================ */
-
-
-/* ---------------------------
-   DEFINICAO DA STRUCT TERRITORIO
-   --------------------------- */
+// Struct que representa um livro
 typedef struct {
-    char nome[30];
-    char cor[10];
-    int tropas;
-} Territorio;
+    char nome[50];
+    char autor[30];
+    char editora[30];
+    int edicao;
+} Livro;
 
+// Struct que representa um emprestimo
+typedef struct {
+    char usuario[30];
+    int idLivro; // indice do livro emprestado
+} Emprestimo;
 
-/* ---------------------------
-   FUNCAO: cadastrar territorios
-   --------------------------- */
-void cadastrarTerritorios(Territorio *vet) {
-    int i;
-
-    printf("=== Cadastro de 5 territorios ===\n\n");
-
-    for (i = 0; i < 5; i++) {
-        printf("Territorio %d:\n", i + 1);
-
-        printf("Digite o nome do territorio: ");
-        scanf(" %29[^\n]", vet[i].nome);
-
-        printf("Digite a cor do exercito: ");
-        scanf(" %9s", vet[i].cor);
-
-        printf("Digite o numero de tropas: ");
-        scanf("%d", &vet[i].tropas);
-
-        printf("\n");
-    }
-}
-
-
-/* ---------------------------
-   FUNCAO: exibir territorios
-   --------------------------- */
-void exibirTerritorios(Territorio *vet) {
-    int i;
-
-    printf("\n=== Territorios cadastrados ===\n");
-
-    for (i = 0; i < 5; i++) {
-        printf("Territorio %d:\n", i + 1);
-        printf("  Nome: %s\n", vet[i].nome);
-        printf("  Cor: %s\n", vet[i].cor);
-        printf("  Tropas: %d\n", vet[i].tropas);
-        printf("----------------------------------\n");
-    }
-}
-
-
-/* ---------------------------
-   FUNCAO DE ATAQUE
-   Usa ponteiros e alocacao dinamica
-   --------------------------- */
-void atacar(Territorio *origem, Territorio *alvo) {
-
-    printf("\n=== Sistema de ataque ===\n");
-    printf("%s (tropas: %d) vai atacar %s (tropas: %d)\n",
-           origem->nome, origem->tropas, alvo->nome, alvo->tropas);
-
-    /* Alocacao dinamica para simular dados de ataque */
-    int *resultado = malloc(sizeof(int));
-
-    if (resultado == NULL) {
-        printf("Erro de memoria.\n");
-        return;
-    }
-
-    /* Regra simples:
-       Se origem > alvo, ataque vence e alvo perde tropas
-       Caso contrario, ataque falha e origem perde tropas */
-    if (origem->tropas > alvo->tropas) {
-        *resultado = 1;
-        alvo->tropas -= 1;
-        printf("Ataque bem sucedido! %s perdeu 1 tropa.\n", alvo->nome);
-    } else {
-        *resultado = 0;
-        origem->tropas -= 1;
-        printf("Ataque falhou. %s perdeu 1 tropa.\n", origem->nome);
-    }
-
-    free(resultado);
-}
-
-
-/* ---------------------------
-   MISSAO SIMPLES
-   --------------------------- */
-void verificarMissao(Territorio *vet) {
-    int i;
-    int totalTropas = 0;
-
-    for (i = 0; i < 5; i++) {
-        totalTropas += vet[i].tropas;
-    }
-
-    printf("\n=== Sistema de missoes ===\n");
-    printf("Missao: possuir pelo menos 20 tropas no total.\n");
-
-    if (totalTropas >= 20) {
-        printf("Missao concluida! Voce venceu!\n");
-    } else {
-        printf("Missao nao concluida. Tropas atuais: %d\n", totalTropas);
-    }
-}
-
-
-/* ---------------------------
-   FUNCAO PRINCIPAL
-   --------------------------- */
 int main() {
+    int qtdLivros;
+    int qtdEmprestimos;
+    
+    printf("Quantos livros deseja cadastrar? ");
+    scanf("%d", &qtdLivros);
+    getchar(); // limpar buffer
 
-    /* Alocacao dinamica para armazenar os 5 territorios */
-    Territorio *mapa = malloc(5 * sizeof(Territorio));
+    // Alocacao dinamica do vetor de livros usando malloc
+    Livro *livros = (Livro*) malloc(qtdLivros * sizeof(Livro));
 
-    if (mapa == NULL) {
+    if (livros == NULL) {
         printf("Erro ao alocar memoria.\n");
         return 1;
     }
 
-    cadastrarTerritorios(mapa);
-    exibirTerritorios(mapa);
+    // Cadastro dos livros
+    for (int i = 0; i < qtdLivros; i++) {
+        printf("\nCadastro do livro %d\n", i + 1);
+        
+        printf("Nome do livro: ");
+        fgets(livros[i].nome, sizeof(livros[i].nome), stdin);
+        livros[i].nome[strcspn(livros[i].nome, "\n")] = '\0';
 
-    /* Simulacao de ataque:
-       territorio 0 ataca territorio 1 */
-    atacar(&mapa[0], &mapa[1]);
+        printf("Autor: ");
+        fgets(livros[i].autor, sizeof(livros[i].autor), stdin);
+        livros[i].autor[strcspn(livros[i].autor, "\n")] = '\0';
 
-    /* Exibir novamente depois do ataque */
-    exibirTerritorios(mapa);
+        printf("Editora: ");
+        fgets(livros[i].editora, sizeof(livros[i].editora), stdin);
+        livros[i].editora[strcspn(livros[i].editora, "\n")] = '\0';
 
-    /* Verificar missao */
-    verificarMissao(mapa);
+        printf("Edicao (numero): ");
+        scanf("%d", &livros[i].edicao);
+        getchar(); // limpar buffer
+    }
 
-    free(mapa);
+    // Cadastro de emprestimos
+    printf("\nQuantos emprestimos deseja registrar? ");
+    scanf("%d", &qtdEmprestimos);
+    getchar(); 
+
+    // Alocacao dinamica usando calloc (inicia tudo com zero)
+    Emprestimo *emprestimos = (Emprestimo*) calloc(qtdEmprestimos, sizeof(Emprestimo));
+
+    if (emprestimos == NULL) {
+        printf("Erro ao alocar memoria.\n");
+        free(livros);
+        return 1;
+    }
+
+    for (int i = 0; i < qtdEmprestimos; i++) {
+        printf("\nCadastro do emprestimo %d\n", i + 1);
+        
+        printf("Nome do usuario: ");
+        fgets(emprestimos[i].usuario, sizeof(emprestimos[i].usuario), stdin);
+        emprestimos[i].usuario[strcspn(emprestimos[i].usuario, "\n")] = '\0';
+
+        printf("Digite o indice do livro emprestado (0 a %d): ", qtdLivros - 1);
+        scanf("%d", &emprestimos[i].idLivro);
+        getchar();
+    }
+
+    // Exibicao dos livros cadastrados
+    printf("\n=== LISTA DE LIVROS ===\n");
+    for (int i = 0; i < qtdLivros; i++) {
+        printf("\nLivro %d\n", i);
+        printf("Nome: %s\n", livros[i].nome);
+        printf("Autor: %s\n", livros[i].autor);
+        printf("Editora: %s\n", livros[i].editora);
+        printf("Edicao: %d\n", livros[i].edicao);
+    }
+
+    // Exibicao dos emprestimos
+    printf("\n=== EMPRESTIMOS REGISTRADOS ===\n");
+    for (int i = 0; i < qtdEmprestimos; i++) {
+        printf("\nEmprestimo %d\n", i + 1);
+        printf("Usuario: %s\n", emprestimos[i].usuario);
+        printf("Livro emprestado: %s\n", livros[emprestimos[i].idLivro].nome);
+    }
+
+    // Liberar memoria
+    free(livros);
+    free(emprestimos);
+
+    printf("\nMemoria liberada. Sistema finalizado.\n");
 
     return 0;
 }
